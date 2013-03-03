@@ -10,4 +10,14 @@ public class AcknowledgementTimer
 		timer = new Timer (msec, ateg);
 	}
 	
+	public void startTimer ( )
+	{
+		t.restart();
+	}
+	
+	public void stopTimer ( )
+	{
+		t.stop();
+	}
+	
 }
