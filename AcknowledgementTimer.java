@@ -7,17 +7,19 @@ public class AcknowledgementTimer
 	public AcknowledgementTimer ( int msec, SWE swe )
 	{
 		ateg = new AcknowledgementTimerEventGenerator (swe);
-		timer = new Timer (msec, ateg);
+		this.timer = new Timer (msec, ateg);
 	}
 	
 	public void startTimer ( )
-	{
-		t.restart();
+	{	//verify this.
+		if ( timer.isRunning() )
+			timer.restart();
+		else
+			timer.start();
 	}
 	
 	public void stopTimer ( )
 	{
-		t.stop();
+		timer.stop();
 	}
-	
 }
