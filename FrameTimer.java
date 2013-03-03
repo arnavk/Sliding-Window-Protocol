@@ -4,14 +4,17 @@ public class FrameTimer
 {
 	private Timer timer;
 	private FrameTimerEventGenerator fteg;
-	public FrameTimer ( int msec, SWE swe )
+	public FrameTimer ( int msec, SWE swe, int seqNr )
 	{
-		fteg = new FrameTimerEventGenerator (swe);
+		fteg = new FrameTimerEventGenerator (swe, seqNr);
 		this.timer = new Timer (msec, ateg);
 	}
 	
-	public void startTimer ( )
+	public void startTimer ( int seqNr )
 	{	//verify this.
+		
+		fteg.setSeqNr (seqNr);
+		
 		if ( timer.isRunning() )
 			timer.restart();
 		else

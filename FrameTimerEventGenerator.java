@@ -7,7 +7,7 @@ public class FrameTimerEventGenerator implements ActionListener
 	
 	public FrameTimerEventGenerator (int seqNr, SWE swe)
 	{
-		this.seq_nr = seq_nr;
+		this.seqNr = seqNr;
 		this.swe = swe;
 	}
 	
@@ -31,7 +31,7 @@ public class FrameTimerEventGenerator implements ActionListener
 		return this.swe;
 	}
 	
-	public void actionPerformed ()
+	public void actionPerformed ( ActionEvent e )
 	{
 		swe.generate_timeout_event (seqNr);
 	}

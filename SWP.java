@@ -24,14 +24,18 @@ public class SWP {
    private int oldest_frame = 0;
    private PEvent event = new PEvent();  
    private Packet out_buf[] = new Packet[NR_BUFS];
-	private Packet in_buf []  = new Packet[NR_BUFS];//added
+	
    //the following are used for simulation purpose only
    private SWE swe = null;
    private String sid = null;  
 
 	//additional variables required
 	private boolean no_nak = true;//added
-
+	private Packet in_buf []  = new Packet[NR_BUFS];
+	private AcknowledgementTimer ackTimer;
+	private FrameTimer [] frameTimer = new FrameTimer [NR_BUFS];
+	
+	
    //Constructor
    public SWP(SWE sw, String s){
       swe = sw;
@@ -41,8 +45,11 @@ public class SWP {
    //the following methods are all protocol related
    private void init(){
       for (int i = 0; i < NR_BUFS; i++){
-	   out_buf[i] = new Packet();
+	   	out_buf[i] = new Packet();
+			frameTimer [i] = new FrameTimer (150, swe, i);
       }
+		
+		ackTimer (50, swe);
    }
 
    private void wait_for_event(PEvent e){
@@ -91,7 +98,7 @@ public class SWP {
 	
 	private void send_frame (int fk, int frame_nr, int frame_expected, Packet [] buffer)
 	{
-		PFrame s;
+		PFrame s = new PFrame();
 		s.kind = fk;
 		if (fk == PFrame.DATA)
 			s.info = buffer [frame_nr % NR_BUFS];
@@ -107,7 +114,7 @@ public class SWP {
 	
 	private int inc (int frame_number)
 	{
-		return ((++frame_number) % (MAX_SEQ+1);
+		return ((++frame_number) % (MAX_SEQ+1));
 	}		
 	
 	public void protocol6() 
@@ -118,11 +125,11 @@ public class SWP {
 		int too_far;
 		int i;
 		
-		PFrame r;
+		PFrame r = new PFrame();
 		
 		boolean []arrived = new boolean[NR_BUFS];
 		
-		int nbuffered; 
+		//int nbuffered; 
 		
       init();
 		enable_network_layer(NR_BUFS);
@@ -130,7 +137,7 @@ public class SWP {
 		next_frame_to_send = 0;
 		frame_expected = 0;
 		too_far = NR_BUFS;
-		nbuffered = 0;
+		//nbuffered = 0;
 		
 		for ( i = 0; i < NR_BUFS; i++ )
 		{
@@ -143,7 +150,7 @@ public class SWP {
 		   switch(event.type) 
 			{
 		      case (PEvent.NETWORK_LAYER_READY):
-					nbuffered ++;
+					//nbuffered ++;
 					from_network_layer (out_buf[next_frame_to_send % NR_BUFS]);
 					send_frame (PFrame.DATA, next_frame_to_send, frame_expected, out_buf);
 					inc(next_frame_to_send);
@@ -182,7 +189,7 @@ public class SWP {
 					
 					while (between(ack_expected, r.ack, next_frame_to_send))
 					{
-						nbuffered++;
+						//nbuffered++;
 						stop_timer (ack_expected % NR_BUFS);
 						inc (ack_expected);
 					}
@@ -204,10 +211,12 @@ public class SWP {
                                        + event.type); 
 			   System.out.flush();
 	   	}
+			/*
 			if (nbuffered < NR_BUFS)// 
 				enable_network_layer();
 			else
 				disable_network_layer();
+			*/
       }      
    }
 
@@ -217,20 +226,23 @@ public class SWP {
     of the frame associated with this timer, 
    */
  
-   private void start_timer(int seq) {
-     
+   private void start_timer(int seq) 
+	{
+ 		frameTimer [seq % NR_BUFS].startTimer (seq);    
    }
 
-   private void stop_timer(int seq) {
-
+   private void stop_timer(int seq) 
+	{
+		frameTimer [seq % NR_BUFS].stopTimer();
    }
 
-   private void start_ack_timer( ) {
-      
+   private void start_ack_timer( ) 
+	{
+		ackTimer.startTimer();    
    }
 
    private void stop_ack_timer() {
-     
+     	ackTimer.stopTimer();
    }
 
 }//End of class
