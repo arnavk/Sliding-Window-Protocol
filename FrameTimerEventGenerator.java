@@ -5,7 +5,7 @@ public class FrameTimerEventGenerator implements ActionListener
 	private int seqNr;
 	private SWE swe;
 	
-	public FrameTimerEventGenerator (int seqNr, SWE swe)
+	public FrameTimerEventGenerator (SWE swe, int seqNr)
 	{
 		this.seqNr = seqNr;
 		this.swe = swe;

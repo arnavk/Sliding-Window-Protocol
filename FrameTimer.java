@@ -7,7 +7,7 @@ public class FrameTimer
 	public FrameTimer ( int msec, SWE swe, int seqNr )
 	{
 		fteg = new FrameTimerEventGenerator (swe, seqNr);
-		this.timer = new Timer (msec, ateg);
+		this.timer = new Timer (msec, fteg);
 	}
 	
 	public void startTimer ( int seqNr )

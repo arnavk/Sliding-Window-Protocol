@@ -49,7 +49,7 @@ public class SWP {
 			frameTimer [i] = new FrameTimer (150, swe, i);
       }
 		
-		ackTimer (50, swe);
+		ackTimer = new AcknowledgementTimer (50, swe);
    }
 
    private void wait_for_event(PEvent e){
@@ -93,8 +93,13 @@ public class SWP {
  *==========================================================================*/
  	private boolean between (int a, int b, int c)
 	{
-		return ((a<=b)&&(b<c)) || ((c<a)&&(a<=b)) || ((b<c) && (c<a));
+		return ( ( a <= b ) && ( b < c ) ) || ( (c < a ) && ( a <= b ) ) || ( ( b < c ) && ( c < a ) );
 	}  
+	
+	private int inc (int frame_number)
+	{
+		return ((frame_number + 1) % (MAX_SEQ + 1));
+	}
 	
 	private void send_frame (int fk, int frame_nr, int frame_expected, Packet [] buffer)
 	{
@@ -108,14 +113,10 @@ public class SWP {
 			no_nak = false;
 		to_physical_layer(s);
 		if (fk == PFrame.DATA)
-			start_timer (frame_nr % NR_BUFS);
+			start_timer (frame_nr); //% NR_BUFS); //Check this out later
 		stop_ack_timer();
 	}
 	
-	private int inc (int frame_number)
-	{
-		return ((++frame_number) % (MAX_SEQ+1));
-	}		
 	
 	public void protocol6() 
 	{
@@ -131,7 +132,7 @@ public class SWP {
 		
 		//int nbuffered; 
 		
-      init();
+      	init();
 		enable_network_layer(NR_BUFS);
 		ack_expected = 0;
 		next_frame_to_send = 0;
@@ -153,7 +154,7 @@ public class SWP {
 					//nbuffered ++;
 					from_network_layer (out_buf[next_frame_to_send % NR_BUFS]);
 					send_frame (PFrame.DATA, next_frame_to_send, frame_expected, out_buf);
-					inc(next_frame_to_send);
+					next_frame_to_send = inc (next_frame_to_send);
 					break; 
 					
 		      case (PEvent.FRAME_ARRIVAL):
@@ -177,8 +178,8 @@ public class SWP {
 								to_network_layer (in_buf[frame_expected % NR_BUFS]);
 								no_nak = true;
 								arrived [frame_expected % NR_BUFS] = false;
-								inc (frame_expected);
-								inc (too_far);
+								frame_expected = inc (frame_expected);
+								too_far = inc (too_far);
 								start_ack_timer();
 							}
 						}
@@ -190,8 +191,9 @@ public class SWP {
 					while (between(ack_expected, r.ack, next_frame_to_send))
 					{
 						//nbuffered++;
+						enable_network_layer(1);
 						stop_timer (ack_expected % NR_BUFS);
-						inc (ack_expected);
+						ack_expected = inc (ack_expected);
 					}
 					
 					break;
